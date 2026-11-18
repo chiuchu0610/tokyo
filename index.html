@@ -123,6 +123,14 @@ section{padding:34px 0 8px}
 .stay dl{margin:8px 0 0;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:.9rem}
 .stay dt{color:var(--mute)}.stay dd{margin:0}
 .btnlink{display:inline-block;margin-top:10px;text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:2px 14px;font-size:.88rem;background:var(--water)}
+button.btnlink{cursor:pointer;background:var(--yellow);font:inherit;font-size:.88rem;color:var(--ink);line-height:1.65}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.night{display:grid;grid-template-columns:56px 1fr;gap:12px;padding:14px 16px;margin-top:16px;align-items:start}
+.night svg{width:56px;height:56px}
+.night .lbl{margin:0;font-size:.85rem;color:var(--mute)}
+.night h4{margin:0;font-weight:400;font-size:1.05rem;line-height:1.4}
+.night .sub{margin:2px 0 0;font-size:.88rem}
+.night .addr{margin:4px 0 0;font-size:.85rem;color:var(--mute);overflow-wrap:anywhere}
 
 /* ---------- Checklists ---------- */
 .list{padding:16px 16px 14px;margin-bottom:16px}
@@ -332,9 +340,9 @@ footer svg{width:120px;margin:0 auto 6px}
     <div class="card stay">
       <svg aria-hidden="true"><use href="#i-city"/></svg>
       <div>
-        <h3>新宿住宿<br><span style="font-size:.9rem;color:var(--mute)">Booking 訂房</span></h3>
-        <dl><dt>日期</dt><dd>11/27（五）→ 12/1（二）・4 晚</dd><dt>入住</dt><dd>預計 20:00</dd><dt>退房</dt><dd>12/1 09:30</dd></dl>
-        <a class="btnlink" href="https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E5%AE%BF%E7%AB%99" target="_blank" rel="noopener">新宿站地圖</a>
+        <h3>新宿・ライオンズマンション歌舞伎町<br><span style="font-size:.9rem;color:var(--mute)">A棟 1302号室・Booking 訂房</span></h3>
+        <dl><dt>日期</dt><dd>11/27（五）→ 12/1（二）・4 晚</dd><dt>入住</dt><dd>預計 20:00</dd><dt>退房</dt><dd>12/1 09:30</dd><dt>地址</dt><dd>東京都新宿区歌舞伎町 2-2-21<br>ライオンズマンション歌舞伎町 A棟 1302号室</dd></dl>
+        <div class="acts"><a class="btnlink" href="https://www.google.com/maps/search/?api=1&query=東京都新宿区歌舞伎町2-2-21" target="_blank" rel="noopener">在地圖上查看</a><button type="button" class="btnlink copy" data-copy="東京都新宿区歌舞伎町2-2-21 ライオンズマンション歌舞伎町A棟1302号室">複製地址</button></div>
       </div>
     </div>
   </section>
@@ -385,6 +393,13 @@ footer svg{width:120px;margin:0 auto 6px}
 (function(){
   /* ---------------- Itinerary data ---------------- */
   var MODES={flight:['飛機','c-water'],bus:['巴士','c-yellow'],car:['自駕','c-coral'],rail:['電車','c-green'],walk:['步行','c-white']};
+  var STAYS={
+    kawa:{short:'河口湖・太陽別墅',name:'河口湖・太陽別墅',sub:'Villa Ensoleille',addr:'',copy:'',icon:'i-house',
+      map:'https://www.google.com/maps/search/?api=1&query=Villa%20Ensoleille%20%E6%B2%B3%E5%8F%A3%E6%B9%96',checkin:{0:'今天 17:00 入住'}},
+    shin:{short:'新宿・歌舞伎町',name:'ライオンズマンション歌舞伎町',sub:'A棟 1302号室',addr:'東京都新宿区歌舞伎町 2-2-21',copy:'東京都新宿区歌舞伎町2-2-21 ライオンズマンション歌舞伎町A棟1302号室',icon:'i-city',
+      map:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('東京都新宿区歌舞伎町2-2-21'),checkin:{2:'今天 20:00 入住'}}
+  };
+  function stayFor(i){return i<=1?STAYS.kawa:i<=5?STAYS.shin:null}
   var DAYS=[
     {iso:'2026-11-25',md:'11/25',wd:'三',icon:'i-bus',title:'出發！前往河口湖',area:'成田 → 河口湖',stay:'河口湖・太陽別墅',items:[
       {k:'move',mode:'flight',time:'02:30',text:'桃園 T1 → 成田 T3，06:35 抵達'},
@@ -499,6 +514,15 @@ footer svg{width:120px;margin:0 auto 6px}
   var $=function(s,r){return (r||document).querySelector(s)};
   var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  // Scroll only the horizontal strip, never the whole page
+  function centerIn(box,el,smooth){
+    if(!box||!el)return;
+    var br=box.getBoundingClientRect(),er=el.getBoundingClientRect();
+    var d=er.left-br.left-(box.clientWidth-er.width)/2;
+    if(Math.abs(d)<2)return;
+    var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    try{box.scrollBy({left:d,behavior:smooth&&!reduce?'smooth':'auto'})}catch(e){box.scrollLeft+=d}
+  }
 
   /* ---------------- Today (Japan time) ---------------- */
   function tokyoISO(){
@@ -561,10 +585,17 @@ footer svg{width:120px;margin:0 auto 6px}
     var d=DAYS[cur],p=$('#panel');
     p.setAttribute('aria-labelledby','tab'+cur);
     var outdoor=d.items.some(function(x){return x.must&&x.k==='stop'})&&cur<3;
+    var st=stayFor(cur),ci=st&&st.checkin[cur];
     p.innerHTML='<div class="card dayhead"><svg aria-hidden="true" class="float"><use href="#'+d.icon+'"/></svg><div>'+
-      '<p style="margin:0">第 '+(cur+1)+' 天・'+d.md+'（'+d.wd+'）</p><h3>'+esc(d.title)+'</h3><p>'+esc(d.area)+(d.stay?'・住 '+esc(d.stay):'')+'</p></div></div>'+
+      '<p style="margin:0">第 '+(cur+1)+' 天・'+d.md+'（'+d.wd+'）</p><h3>'+esc(d.title)+'</h3><p>'+esc(d.area)+(st?'・住 '+esc(st.short):'')+'</p></div></div>'+
       (outdoor?'<div class="sunset">🌇 11 月日落約 16:30，戶外看景要把握時間</div>':'')+
-      '<ul class="tl">'+d.items.map(itemHTML).join('')+'</ul>';
+      '<ul class="tl">'+d.items.map(itemHTML).join('')+'</ul>'+
+      (st?'<div class="card night"><svg aria-hidden="true"><use href="#'+st.icon+'"/></svg><div>'+
+        '<p class="lbl">今晚住宿'+(ci?'・'+ci:'')+'</p><h4>'+esc(st.name)+'</h4><p class="sub">'+esc(st.sub)+'</p>'+
+        (st.addr?'<p class="addr">'+esc(st.addr)+'</p>':'')+
+        '<div class="acts"><a class="btnlink" href="'+esc(st.map)+'" target="_blank" rel="noopener">在地圖上查看</a>'+
+        (st.copy?'<button type="button" class="btnlink copy" data-copy="'+esc(st.copy)+'">複製地址</button>':'')+
+        '</div></div></div>':'');
     if(animate){p.classList.remove('bounce');void p.offsetWidth;p.classList.add('bounce')}
   }
   function select(i,focus){
@@ -572,8 +603,8 @@ footer svg{width:120px;margin:0 auto 6px}
     cur=i;
     $$('.tab').forEach(function(b,j){b.setAttribute('aria-selected',String(j===i));b.tabIndex=j===i?0:-1});
     var b=$('#tab'+i);
-    if(focus)b.focus();
-    b.scrollIntoView({block:'nearest',inline:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    if(focus){try{b.focus({preventScroll:true})}catch(e){b.focus()}}
+    centerIn($('#tabs'),b,true);
     renderDay(true);
   }
   renderTabs();renderDay(false);
@@ -582,17 +613,18 @@ footer svg{width:120px;margin:0 auto 6px}
     if(e.key==='ArrowRight'){e.preventDefault();select(Math.min(cur+1,DAYS.length-1),true)}
     if(e.key==='ArrowLeft'){e.preventDefault();select(Math.max(cur-1,0),true)}
   });
-  if(todayIdx>0)setTimeout(function(){var b=$('#tab'+todayIdx);if(b)b.scrollIntoView({block:'nearest',inline:'center'})},100);
+  if(todayIdx>0)setTimeout(function(){centerIn($('#tabs'),$('#tab'+todayIdx),false)},100);
 
   /* ---------------- Nav highlight ---------------- */
   var links=$$('.nav a');
   if('IntersectionObserver' in window){
     var io=new IntersectionObserver(function(es){
       es.forEach(function(e){
-        if(e.isIntersecting){
-          links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id)});
-          var on=$('.nav a.on');if(on)on.scrollIntoView({block:'nearest',inline:'nearest'});
-        }
+        if(!e.isIntersecting)return;
+        var cur=$('.nav a.on');
+        if(cur&&cur.getAttribute('href')==='#'+e.target.id)return;
+        links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id)});
+        centerIn($('.nav'),$('.nav a.on'),true);
       });
     },{rootMargin:'-45% 0px -50% 0px'});
     $$('main section').forEach(function(s){io.observe(s)});
@@ -686,6 +718,19 @@ footer svg{width:120px;margin:0 auto 6px}
       patch(list,{custom:c});
       inp.value='';inp.focus();
     });
+  });
+
+  /* ---------------- Copy address ---------------- */
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('.copy');if(!b)return;
+    var txt=b.dataset.copy,label=b.textContent;
+    function done(ok){b.textContent=ok?'已複製':'複製失敗，請長按地址';setTimeout(function(){b.textContent=label},1600)}
+    function fallback(){
+      try{var t=document.createElement('textarea');t.value=txt;t.setAttribute('readonly','');t.style.position='absolute';t.style.left='-9999px';
+        document.body.appendChild(t);t.select();var ok=document.execCommand('copy');document.body.removeChild(t);done(ok)}catch(err){done(false)}
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(function(){done(true)},fallback);
+    else fallback();
   });
 
   /* ---------------- Connect shared store ---------------- */
